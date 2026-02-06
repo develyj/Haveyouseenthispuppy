@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Have you seen this puppy?</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fbe4e9;
+            font-family: sans-serif;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 500px;
+	/* 높이가 부드럽게 변하도록 설정 */
+	transition: height 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 500px;
+            position: relative; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+	/* 성공 시 확장될 클래스 */
+	.card.expanded {
+	height: 800px;
+	}
+        .image { width: 400px; margin-top: 20px; pointer-events: none; }
+	.btn-group { margin-top: 50px; width: 100%; position: relative; height: 100px; }
+        h1 { font-size: 27px; color: #333; margin-top: 20px; pointer-events: none; padding: 0 20px; }
+        
+        #yesBtn {
+            background-color: #e91e63;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            position: absolute;
+            left: 150px;
+            /*bottom: 60px;*/
+            transition: transform 0.1s ease-out;
+            z-index: 10;
+        }
+        #noBtn {
+            background-color: #eee;
+            color: #555;
+            padding: 12px 28px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            border: none;
+            position: absolute;
+            right: 150px;
+            /*bottom: 60px;*/
+        }
+/* 아래에 추가될 메시지 영역 (기본은 숨김) */
+#success-extra {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    margin-top: 100px;
+}/* 성공 시 메시지 표시 */
+.show-msg #success-extra {
+    display: block;
+    opacity: 1;
+}
+    </style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+    <div id="content">
+        <img id="mainImg" src="https://t1.daumcdn.net/cafeattach/1Nim1/971d3d0de9f431b534887b3825336d286d3e0a81" class="image">
+        <h1 id="mainTitle">Do you think this puppy is cute?</h1>
+        
+        <button id="yesBtn"><b>Yes</b></button>
+        <button id="noBtn"><b>No</b></button>
+<div id="success-extra">
+    <h2 style="color: #e91e63;">I know. But you're not cute. Idiot.</h2><br/>
+    <img src="https://t1.daumcdn.net/cafeattach/1Nim1/f078d748880ea38c5398c14203342cea1f944d7b" style="width: 500px;">
+</div>
+    </div>
+</div>
+
+<script>
+    const card = document.getElementById('mainCard');
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const content = document.getElementById('content');
+
+    // 1. 성공 시 화면 전환 함수
+yesBtn.onclick = () => {
+    // 1. 카드 높이 확장 및 메시지 등장
+    card.classList.add('show-msg');
+    card.classList.add('expanded');
+
+    // 2. 버튼 정리
+    noBtn.style.display = 'none'; // No 버튼 삭제
+    yesBtn.style.display = 'none';
+   // yesBtn.style.transform = 'scale(1)'; // 커졌던 크기 복구
+   // yesBtn.style.position = 'static'; // 도망 방지를 위해 위치 고정
+    
+    // 3. (선택) 더 이상 마우스 이동에 반응하지 않도록 플래그 설정
+    isSuccess = true; 
+};
+
+
+    // 2. 마우스 움직임 감지
+    card.addEventListener('mousemove', (e) => {
+        // 이미 성공 화면으로 바뀌었다면 동작 안 함
+
+	if (typeof isSuccess !== 'undefined' && isSuccess) return;
+        if (!document.getElementById('noBtn')) return;
+
+        const cardRect = card.getBoundingClientRect();
+        const mouseX = e.clientX - cardRect.left;
+        const mouseY = e.clientY - cardRect.top;
+
+        // --- No 버튼 도망 로직 ---
+        const noRect = {
+            x: noBtn.offsetLeft,
+            y: noBtn.offsetTop,
+            w: noBtn.offsetWidth,
+            h: noBtn.offsetHeight
+        };
+        const noCenterX = noRect.x + noRect.w / 2;
+        const noCenterY = noRect.y + noRect.h / 2;
+        const distNo = Math.sqrt(Math.pow(mouseX - noCenterX, 2) + Math.pow(mouseY - noCenterY, 2));
+
+        if (distNo < 70) {
+            const maxX = cardRect.width - noRect.w - 20;
+            const maxY = cardRect.height - noRect.h - 20;
+
+            const randomX = Math.floor(Math.random() * (maxX - 20)) + 20;
+            const randomY = Math.floor(Math.random() * (maxY - 150)) + 150; 
+
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.right = 'auto';
+            noBtn.style.bottom = 'auto';
+        }
+
+        // --- Yes 버튼 확대 로직 ---
+        const yesRect = {
+            x: yesBtn.offsetLeft,
+            y: yesBtn.offsetTop,
+            w: yesBtn.offsetWidth,
+            h: yesBtn.offsetHeight
+        };
+        const yesCenterX = yesRect.x + yesRect.w / 2;
+        const yesCenterY = yesRect.y + yesRect.h / 2;
+        const distYes = Math.sqrt(Math.pow(mouseX - yesCenterX, 2) + Math.pow(mouseY - yesCenterY, 2));
+
+        if (distYes < 130) {
+            const scale = 1 + (130 - distYes) / 70;
+            yesBtn.style.transform = `scale(${Math.min(scale, 2.8)})`;
+        } else {
+            yesBtn.style.transform = `scale(1)`;
+        }
+    });
+</script>
+
+</body>
+</html>
